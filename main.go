@@ -4,17 +4,19 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"naevis/ratelim"
 	"naevis/search"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
-	"github.com/joho/godotenv"
 	"github.com/julienschmidt/httprouter"
 	"github.com/rs/cors"
+	"go.mongodb.org/mongo-driver/mongo"
 )
+
+var DB *mongo.Client
 
 // Security headers middleware
 func securityHeaders(next http.Handler) http.Handler {
@@ -29,29 +31,27 @@ func securityHeaders(next http.Handler) http.Handler {
 }
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	baseRouter := httprouter.New()
+	baseRouter.GET("/health", Index)
+	baseRouter.GET("/ac", search.Autocompleter)
+	baseRouter.GET("/api/search/:entityType", search.SearchHandler)
+	baseRouter.POST("/emitted", search.EventHandler)
 
-	router := httprouter.New()
-
-	router.GET("/health", Index)
-	router.GET("/api/search/:entityType", ratelim.RateLimit(search.SearchHandler))
-
-	// CORS setup
-	c := cors.New(cors.Options{
+	// Apply middleware only once at setup
+	handler := securityHeaders(cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
-	})
-
-	handler := securityHeaders(c.Handler(router))
+	}).Handler(baseRouter))
 
 	server := &http.Server{
-		Addr:    ":7000",
-		Handler: handler, // Use the middleware-wrapped handler
+		Addr:              ":7000",
+		Handler:           handler,
+		ReadTimeout:       5 * time.Second,   // Prevents slow client attacks
+		WriteTimeout:      10 * time.Second,  // Prevents slow responses
+		IdleTimeout:       120 * time.Second, // Keeps connections open for reuse
+		ReadHeaderTimeout: 2 * time.Second,   // Limits header parsing time
 	}
 
 	// Start server in a goroutine to handle graceful shutdown
