@@ -21,6 +21,7 @@ type Place struct {
 	Category    string `json:"category"`
 	Description string `json:"description"`
 	Image       string `json:"banner"`
+	CreatedAt   string `json:"created_at"`
 }
 
 // Index represents the incoming JSON event structure.

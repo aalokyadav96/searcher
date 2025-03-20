@@ -78,5 +78,6 @@ func main() {
 }
 
 func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	// search.InitTest()
 	fmt.Fprint(w, "200")
 }

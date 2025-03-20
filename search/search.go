@@ -34,13 +34,16 @@ func EventHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	}
 	log.Printf("Received event: %+v", event)
 
-	IndexData(event)
+	IndexDatainRedis(event)
+
+	log.Printf("Indexed")
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintln(w, `{"message": "Event processed successfully"}`)
 }
 
+// Autocompleter handles HTTP requests for autocomplete suggestions.
 func Autocompleter(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	prefix := r.URL.Query().Get("prefix")
 	if prefix == "" {
@@ -50,7 +53,11 @@ func Autocompleter(w http.ResponseWriter, r *http.Request, ps httprouter.Params)
 	prefix = strings.ToLower(prefix)
 
 	// Retrieve suggestions.
-	results := []string{prefix}
+	results, err := GetWordsWithPrefix(prefix)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error retrieving autocomplete: %v", err), http.StatusInternalServerError)
+		return
+	}
 
 	// Convert to JSON and respond.
 	response, err := json.Marshal(results)

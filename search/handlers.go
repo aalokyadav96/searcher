@@ -43,27 +43,28 @@ func GetResultsByTypeHandler(w http.ResponseWriter, r *http.Request, entityType 
 func GetResultsOfType(entityType string, query string) interface{} {
 	switch entityType {
 	case "events":
-		eventIDs := GetIndexResults("events", query)
+		eventIDs, _ := GetIndexResults(entityType, query)
 		events := []structs.Event{}
 		for _, id := range eventIDs {
 			filter := bson.M{"eventid": id}
 			var ev structs.Event
-			err := FetchAndDecode("events", filter, &ev)
+			err := FetchAndDecode(entityType, filter, &ev)
 			if err != nil {
 				log.Println("Error fetching event:", err)
 				continue
 			}
 			events = append(events, ev)
 		}
+		log.Println("888888 ", events)
 		return events
 
 	case "places":
-		placeIDs := GetIndexResults("places", query)
+		placeIDs, _ := GetIndexResults(entityType, query)
 		places := []structs.Place{}
 		for _, id := range placeIDs {
 			filter := bson.M{"placeid": id}
 			var p structs.Place
-			err := FetchAndDecode("places", filter, &p)
+			err := FetchAndDecode(entityType, filter, &p)
 			if err != nil {
 				log.Println("Error fetching place:", err)
 				continue
@@ -74,7 +75,7 @@ func GetResultsOfType(entityType string, query string) interface{} {
 
 	case "all":
 		// For the "all" case, you might want to return both events and places.
-		eventIDs := GetIndexResults("events", query)
+		eventIDs, _ := GetIndexResults("events", query)
 		events := []structs.Event{}
 		for _, id := range eventIDs {
 			filter := bson.M{"eventid": id}
@@ -87,7 +88,7 @@ func GetResultsOfType(entityType string, query string) interface{} {
 			events = append(events, ev)
 		}
 
-		placeIDs := GetIndexResults("places", query)
+		placeIDs, _ := GetIndexResults("places", query)
 		places := []structs.Place{}
 		for _, id := range placeIDs {
 			filter := bson.M{"placeid": id}
@@ -109,24 +110,9 @@ func GetResultsOfType(entityType string, query string) interface{} {
 	}
 }
 
-// GetIndexResults simulates a reverse index retriever.
-// In your real implementation, this function would query your reverse index.
-func GetIndexResults(entityType string, query string) []string {
-	// For demonstration purposes, we return hard-coded IDs.
-	// You can modify this to perform your reverse-index lookup.
-	switch entityType {
-	case "events":
-		return []string{"Bz7TnUhPbr0_4g"}
-	case "places":
-		return []string{"JQLCD3D_t0mhR_"}
-	default:
-		return []string{}
-	}
-}
-
 // FetchAndDecode retrieves a document from MongoDB and decodes it into the provided output struct.
 func FetchAndDecode(collectionName string, filter bson.M, out interface{}) error {
-	collection := initdb.Client.Database("eventdb").Collection(collectionName)
+	collection := initdb.MongoClient.Database("eventdb").Collection(collectionName)
 	projection, exists := Projections[collectionName]
 	if !exists {
 		projection = bson.M{}
