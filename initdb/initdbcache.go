@@ -14,24 +14,21 @@ import (
 // Package-level context.
 var CTX = context.Background()
 
-var RedisClient *redis.Client
 var MongoClient *mongo.Client // Global MongoDB client
 
-// init initializes Redis and MongoDB clients.
+var rxdurl string = os.Getenv("REDIS_URL")
+var rxdopts, _ = redis.ParseURL(rxdurl)
+var RedisClient = redis.NewClient(rxdopts)
+
+// init initializes MongoDB client.
 func init() {
 	errx := godotenv.Load()
 	if errx != nil {
 		log.Fatal("Error loading .env file")
 	}
 
-	var redis_url = os.Getenv("REDIS_URL")
 	var mongo_url = os.Getenv("MONGODB_URI")
-	// Initialize Redis client.
-	RedisClient = redis.NewClient(&redis.Options{
-		Addr:     redis_url,
-		Password: os.Getenv("REDIS_PASSWORD"), // no password set
-		DB:       0,                           // use default DB
-	})
+
 	if _, err := RedisClient.Ping(CTX).Result(); err != nil {
 		log.Fatalf("Failed to connect to Redis: %v", err)
 	}
