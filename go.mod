@@ -8,6 +8,7 @@ require (
 	github.com/redis/go-redis/v9 v9.7.1
 	github.com/rs/cors v1.11.1
 	go.mongodb.org/mongo-driver v1.17.3
+	golang.org/x/time v0.11.0
 )
 
 require (

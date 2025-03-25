@@ -9,27 +9,6 @@ import (
 	"time"
 )
 
-// -------------------------
-// REDIS CONTEXT
-// -------------------------
-
-// var ctx = context.Background()
-
-// -------------------------
-// TRIE FOR AUTOCOMPLETE
-// -------------------------
-
-// // TrieNode represents a node in the Trie.
-// type TrieNode struct {
-// 	Children map[rune]*TrieNode
-// 	IsWord   bool
-// }
-
-// // NewTrieNode creates a new TrieNode.
-// func NewTrieNode() *TrieNode {
-// 	return &TrieNode{Children: make(map[rune]*TrieNode)}
-// }
-
 // AddWord inserts a word into the Trie and saves it in Redis.
 func (t *TrieNode) AddWord(word string) error {
 	node := t
@@ -106,35 +85,3 @@ func GetCachedAutocompleteResults(key string) ([]string, error) {
 	}
 	return results, nil
 }
-
-// -------------------------
-// AUTOCOMPLETE HANDLER
-// -------------------------
-
-// // Autocompleter handles HTTP requests for autocomplete suggestions.
-// func Autocompleter(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-// 	prefix := r.URL.Query().Get("prefix")
-// 	if prefix == "" {
-// 		http.Error(w, "Search prefix is required", http.StatusBadRequest)
-// 		return
-// 	}
-// 	prefix = strings.ToLower(prefix)
-
-// 	// Retrieve suggestions.
-// 	results, err := GetWordsWithPrefix(prefix)
-// 	if err != nil {
-// 		http.Error(w, fmt.Sprintf("Error retrieving autocomplete: %v", err), http.StatusInternalServerError)
-// 		return
-// 	}
-
-// 	// Convert to JSON and respond.
-// 	response, err := json.Marshal(results)
-// 	if err != nil {
-// 		http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
-// 		return
-// 	}
-
-// 	w.Header().Set("Content-Type", "application/json")
-// 	w.WriteHeader(http.StatusOK)
-// 	w.Write(response)
-// }
