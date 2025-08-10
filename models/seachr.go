@@ -1,9 +1,11 @@
-package structs
+package models
 
-import "time"
+import (
+	"time"
+)
 
 // Event struct for MongoDB documents
-type Event struct {
+type MEvent struct {
 	EventID     string    `json:"eventid"`
 	Title       string    `json:"title"`
 	Location    string    `json:"location"`
@@ -14,7 +16,7 @@ type Event struct {
 }
 
 // Place struct for MongoDB documents
-type Place struct {
+type MPlace struct {
 	PlaceID     string `json:"placeid"`
 	Name        string `json:"name"`
 	Address     string `json:"address"`
